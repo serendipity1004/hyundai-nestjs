@@ -45,12 +45,14 @@ export class PostsService {
   findAll() {
     return this.postRepository.createQueryBuilder('post')
       .leftJoinAndSelect('post.author', 'author')
+      .leftJoinAndSelect('post.tags', 'tag')
       .getMany();
   }
 
   async findOne(id: number) {
     const post = await this.postRepository.createQueryBuilder('post')
       .leftJoinAndSelect('post.author', 'author')
+      .leftJoinAndSelect('post.tags', 'tag')
       .where('post.id = :id', { id })
       .getOne();
     // const post = await this.postRepository.findOneBy({
@@ -84,7 +86,7 @@ export class PostsService {
 
     const updated = this.postRepository.merge({
       ...post,
-      tags: [],
+      tags: updatePostDto.tags && updatePostDto.tags.length > 0 ? tags : post.tags,
     }, {
       ...updatePostDto,
       tags,
