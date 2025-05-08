@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { UserProfileEntity } from "./user-profile.entity";
 import { PostEntity } from "src/posts/entities/post.entity";
+import { PostCommentEntity } from "src/post-comments/entities/post-comment.entity";
 
 @Entity('user')
 export class UserEntity {
@@ -28,6 +29,9 @@ export class UserEntity {
 
     @OneToMany(() => PostEntity, (post) => post.author)
     posts: PostEntity[];
+
+    @OneToMany(()=> PostCommentEntity, (pc) => pc.author)
+    postComments: PostCommentEntity[];
 
     @CreateDateColumn()
     createdAt: Date;
