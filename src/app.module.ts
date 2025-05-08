@@ -7,6 +7,7 @@ import { PostEntity } from './posts/entities/post.entity';
 import { UsersModule } from './users/users.module';
 import { UserEntity } from './users/entities/user.entity';
 import { UserProfileEntity } from './users/entities/user-profile.entity';
+import { TagEntity } from './posts/entities/tag.entity';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { UserProfileEntity } from './users/entities/user-profile.entity';
         PostEntity,
         UserEntity,
         UserProfileEntity,
+        TagEntity,
       ],
       synchronize: true,
     }),

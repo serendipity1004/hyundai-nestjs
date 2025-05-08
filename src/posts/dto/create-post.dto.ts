@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString, Length } from "class-validator";
+import { ArrayMaxSize, ArrayNotEmpty, IsArray, IsNotEmpty, IsNumber, IsString, Length } from "class-validator";
 import { IsNull } from "typeorm";
 
 export class CreatePostDto {
@@ -23,4 +23,12 @@ export class CreatePostDto {
         message: 'content를 입력해주세요'
     })
     content: string;
+
+    @IsArray()
+    @ArrayNotEmpty()
+    @IsString({
+        each: true,
+    })
+    @ArrayMaxSize(3)
+    tags: string[];
 }
