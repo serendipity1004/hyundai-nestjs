@@ -1,24 +1,35 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
 import { Repository } from 'typeorm';
+import { UserProfileEntity } from './entities/user-profile.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(UserProfileEntity)
+    private readonly userProfileRepository: Repository<UserProfileEntity>,
   ) { }
 
   async create(createUserDto: CreateUserDto) {
     try {
       // 1) UserEntity 객체 생성
-      const user = this.userRepository.create(createUserDto);
+      const user = this.userRepository.create({
+        ...createUserDto,
+        profile:{
+          bio: createUserDto.bio,
+        },
+      });
 
-      // 2) 저장
-      return await this.userRepository.save(user);
+      await this.userRepository.save(user);
+
+      return this.userRepository.findOneBy({
+        email: user.email,
+      })
     } catch (e) {
       // 3) unique violation 에러가 날 경우
       //    이미 가입한 이메일 에러 반환
@@ -34,18 +45,42 @@ export class UsersService {
   }
 
   findAll() {
-    return `This action returns all users`;
+    return this.userRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: number) {
+    const user = await this.userRepository.findOne({
+      where:{
+        id,
+      }
+    });
+
+    if(!user){
+      throw new NotFoundException('존재하지 않는 사용자입니다!');
+    }
+
+    return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const user = await this.findOne(id);
+
+    const updated = this.userRepository.merge(user, {
+      ...updateUserDto,
+      profile: {
+        ...(user.profile ?? {}),
+        bio: updateUserDto.bio,
+      }
+    });
+
+    return this.userRepository.save(updated);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: number) {
+    await this.findOne(id);
+
+    await this.userRepository.delete(id);
+
+    return id;
   }
 }

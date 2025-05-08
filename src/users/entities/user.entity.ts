@@ -1,4 +1,6 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { UserProfileEntity } from "./user-profile.entity";
+import { PostEntity } from "src/posts/entities/post.entity";
 
 @Entity('user')
 export class UserEntity {
@@ -17,6 +19,15 @@ export class UserEntity {
         default: 'user',
     })
     role: string;
+
+    @OneToOne(() => UserProfileEntity, (profile) => profile.user, {
+        cascade: true,
+        eager: true,
+    })
+    profile: UserProfileEntity;
+
+    @OneToMany(() => PostEntity, (post) => post.author)
+    posts: PostEntity[];
 
     @CreateDateColumn()
     createdAt: Date;

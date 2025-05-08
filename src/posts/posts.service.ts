@@ -10,22 +10,35 @@ export class PostsService {
   constructor(
     @InjectRepository(PostEntity)
     private readonly postRepository: Repository<PostEntity>,
-  ){}
+  ) { }
 
-  create(createPostDto: CreatePostDto) {
-    const post = this.postRepository.create(createPostDto);
+  async create(createPostDto: CreatePostDto) {
+    const post = this.postRepository.create({
+      ...createPostDto,
+      author: {
+        id: createPostDto.authorId,
+      }
+    });
 
-    return this.postRepository.save(post);
+    await this.postRepository.save(post);
+
+    return this.findOne(post.id);
   }
 
   findAll() {
-    return this.postRepository.find();
+    return this.postRepository.createQueryBuilder('post')
+      .leftJoinAndSelect('post.author', 'author')
+      .getMany();
   }
 
   async findOne(id: number) {
-    const post = await this.postRepository.findOneBy({
-      id
-    });
+    const post = await this.postRepository.createQueryBuilder('post')
+      .leftJoinAndSelect('post.author', 'author')
+      .where('post.id = :id', {id})
+      .getOne();
+    // const post = await this.postRepository.findOneBy({
+    //   id
+    // });
 
     if (!post) {
       throw new NotFoundException(`ID: ${id}의 포스트가 존재하지 않습니다!`);
@@ -48,7 +61,9 @@ export class PostsService {
       updatePostDto,
     );
 
-    return this.postRepository.save(updated);
+    await this.postRepository.save(updated);
+
+    return this.findOne(post.id);
   }
 
   async remove(id: number) {
