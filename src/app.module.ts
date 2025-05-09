@@ -13,7 +13,9 @@ import { PostCommentEntity } from './post-comments/entities/post-comment.entity'
 import { WinstonModule } from 'nest-winston';
 import { winstonConfig } from './logger/winston.config';
 import { LoggerInterceptor } from './logger/interceptor/logger.interceptor';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { ErrorExceptionFilter } from './common/filter/error.filter';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -37,6 +39,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
     PostsModule,
     UsersModule,
     PostCommentsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [
@@ -44,6 +47,10 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggerInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: ErrorExceptionFilter,
     }
   ],
 })

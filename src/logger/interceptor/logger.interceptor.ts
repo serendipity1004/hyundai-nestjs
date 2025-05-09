@@ -17,7 +17,7 @@ export class LoggerInterceptor implements NestInterceptor {
         const {method, originalUrl} = req;
 
         const now = Date.now();
-
+        
         return next.handle().pipe(
             tap((responseData)=>{
                 const res = context.switchToHttp().getResponse();
