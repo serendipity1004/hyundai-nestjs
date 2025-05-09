@@ -1,98 +1,167 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# IAM 권한 생성하기
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+1. IAM 사용자 생성하기
+  - AWS IAM접속 > 사용자 추가
+  - 권한 추가
+    - AdministratorAccess-AWSElasticBeanstalk
+    - AmazonS3FullAccess
+    - AmazonEC2FullAccess
+  - 유저 선택 후 키 생성하기
+    - Create Access Key
+    - Application running outside AWS 선택
+    - Done 누르고 저장
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+2. EB EC2 Admin Role 생성하기
+  - AWS Service 선택
+  - EC2 선택하기
+  - Admin Access 추가하기
 
-## Description
+# Supabase 생성하기
+1. Seoul에 생성하기
+    1. 데이터베이스 비밀번호 확보해두기
+2. Connection String 가져오기
+3. ORM으로 가서 connection string 저장하기
+4. 데이터베이스 설정으로 돌아와서 Connection URL 추가해주기
+    1. type은 남기고 나머지는 comment
+    2. url 추가
+      ```typescript
+      TypeOrmModule.forRoot({
+        url: 'URL 여기에 붙여넣기',
+        type: 'postgres',
+        // host: 'localhost',
+        // port: 3001,
+        // username: 'postgres',
+        // password: 'postgres',
+        // database: 'postgres',
+        entities: [
+          PostEntity,
+          UserEntity,
+          UserProfileEntity,
+          PostCommentEntity,
+          TagEntity,
+        ],
+        synchronize: true,
+      }),
+      ```
+    3. 연결 된 다음 migration 진행된거 확인 (Supabase Dashboard에서 Table 누르면 생성된 테이블 확인 가능)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-## Project setup
+# Elastic Beanstalk 애플리케이션 생성
+## Step 1
+1. Web Server Environment 선택
+2. Application 이름 nestjs test
+3. Platform → nodeJS
+4. Sample Application
+5. Single Instance (Free Tier Eligible)
+6. Next
 
-```bash
-$ pnpm install
-```
+## Step 2
+1. EB Role 자동 생성
+2. EC2 Role은 [IAM]섹션 2번에서 생성한 Role 넣어주기
+3. Next
 
-## Compile and run the project
+# Step 3
+1. VPC 아무거나 선택 (CIDR 172로 시작하는거 있으면 선택)
+2. Next
 
-```bash
-# development
-$ pnpm run start
+# Step 4
+1. Default Security Group 선택
 
-# watch mode
-$ pnpm run start:dev
+# Step 5
+1. 기본세팅으로 Next 누르기
 
-# production mode
-$ pnpm run start:prod
-```
+# GitHub 환경변수 등록
+1. Settings > Secrets and Variables > Actions > New Repository Secret
+2. 등록할 변수 아래와 같음
+AWS_ACCESS_KEY_ID : IAM에서 발급받은 키
+AWS_SECRET_ACCESS_KEY : IAM에서 발급받은 시크릿
+AWS_REGION : ap-northeast-2
+EB_APP_NAME : Elastic Beanstalk 이름
+EB_ENV_NAME : Elastic Beanstalk 환경 이름
+S3_BUCKET_NAME : EB 생성 시 자동 생성된 S3 버켓 이름
 
-## Run tests
 
-```bash
-# unit tests
-$ pnpm run test
+# NestJS 수정하기
+1. .gitignore에 무시할 파일 추가 (postgres-data등)
+2. GitHub Action 파이프라인 생성하기
+  - .github/workflows/deploy.yml 생성
+  ```yaml
+  name: Deploy to Elastic Beanstalk
 
-# e2e tests
-$ pnpm run test:e2e
+  on:
+    # 메인브란치에 푸쉬할때 실행
+    push:
+      branches:
+        - main
 
-# test coverage
-$ pnpm run test:cov
-```
+  jobs:
+    deploy:
+      # ubuntu 환경에서 파이프라인 실행
+      runs-on: ubuntu-latest
 
-## Deployment
+      steps:
+        # 최신 소스 체크아웃
+        - name: Checkout source code
+          uses: actions/checkout@v3
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+        # nodeJS 설치
+        - name: Set up Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: 18
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+        # pnpm 글로벌 설치
+        - name: Install pnpm
+          run: npm install -g pnpm
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
+        # 의존성 설치
+        - name: Install dependencies
+          run: pnpm install
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+        # 빌드
+        - name: Build NestJS app
+          run: pnpm run build
 
-## Resources
+        # 배포시 필요한 소스 전부 패키징
+        - name: Zip deployment package
+          run: |
+            zip -r deploy.zip dist/ node_modules/ package.json Procfile
 
-Check out a few resources that may come in handy when working with NestJS:
+        # AWS 크레덴셜 등록
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v2
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: ${{ secrets.AWS_REGION }}
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+        # S3에 빌드한 프로젝트 업로드
+        - name: Upload to S3
+          run: |
+            aws s3 cp deploy.zip s3://${{ secrets.S3_BUCKET_NAME }}/deploy-${{ github.sha }}.zip
 
-## Support
+        # EB 새 버전 생성
+        - name: Create new application version
+          run: |
+            aws elasticbeanstalk create-application-version \
+              --application-name ${{ secrets.EB_APP_NAME }} \
+              --version-label "ver-${{ github.sha }}" \
+              --source-bundle S3Bucket=${{ secrets.S3_BUCKET_NAME }},S3Key=deploy-${{ github.sha }}.zip
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+        # 환경 업데이트
+        - name: Deploy new version to Elastic Beanstalk
+          run: |
+            aws elasticbeanstalk update-environment \
+              --environment-name ${{ secrets.EB_ENV_NAME }} \
+              --version-label "ver-${{ github.sha }}"
+  ```
 
-## Stay in touch
+  3. Procfile 생성
+  ```shell
+  web: npm run start:prod
+  ```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+# 스케일링 테스트해보기
 
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Environment > Configuration > min instance를 1에서 2로 올려보기
+(EC2 탭으로 가보면 인스턴스 두개 생성된거 확인 가능)
