@@ -8,6 +8,8 @@ import { UserProfileEntity } from 'src/users/entities/user-profile.entity';
 import { JwtService } from '@nestjs/jwt';
 import { AccessTokenPayload } from './types/access-token-payload.type';
 import { LoginDto } from './dto/login.dto';
+import { basename, join } from 'path';
+import { promises as fs } from 'fs';
 
 @Injectable()
 export class AuthService {
@@ -21,10 +23,10 @@ export class AuthService {
     ) { }
 
     // Basic {token}
-    validateBasicToken(header: string){
+    validateBasicToken(header: string) {
         const [scheme, encoded] = header.split(' ');
 
-        if(scheme !== 'Basic' || !encoded){
+        if (scheme !== 'Basic' || !encoded) {
             throw new UnauthorizedException('Basic 인증 스킴이 아닙니다!');
         }
 
@@ -32,7 +34,7 @@ export class AuthService {
         const credentials = this.decodeBase64(encoded);
         const [username, password] = credentials.split(':');
 
-        if(!username || !password){
+        if (!username || !password) {
             throw new UnauthorizedException('username 또는 password가 잘못됐습니다!');
         }
 
@@ -42,11 +44,11 @@ export class AuthService {
         }
     }
 
-    decodeBase64(encoded: string){
-        try{
+    decodeBase64(encoded: string) {
+        try {
             const buffer = Buffer.from(encoded, 'base64');
             return buffer.toString('utf-8');
-        }catch(e){
+        } catch (e) {
             throw new UnauthorizedException('Base64 인코딩 실패');
         }
     }
@@ -61,6 +63,22 @@ export class AuthService {
 
     async register(registerDto: RegisterDto) {
         const hashedPassword = await this.hashPassword(registerDto.password);
+
+        let newPath;
+
+        if (registerDto.profileImage) {
+            const fileName = basename(registerDto.profileImage);
+            newPath = join('uploads', 'profileImage', fileName);
+
+            try {
+                await fs.rename(
+                    join(process.cwd(), registerDto.profileImage),
+                    join(process.cwd(), newPath)
+                )
+            } catch (e) {
+                throw new BadRequestException('프로필 이미지를 다시 업로드 해주세요!')
+            }
+        }
 
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
@@ -77,6 +95,7 @@ export class AuthService {
             const profile = this.userProfileRepository.create({
                 user: user,
                 bio: registerDto.bio,
+                profileImage: newPath,
             });
 
             await queryRunner.manager.save(profile);

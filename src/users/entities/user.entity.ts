@@ -3,10 +3,15 @@ import { UserProfileEntity } from "./user-profile.entity";
 import { PostEntity } from "src/posts/entities/post.entity";
 import { PostCommentEntity } from "src/post-comments/entities/post-comment.entity";
 import { Exclude } from "class-transformer";
+import { ApiProperty } from "@nestjs/swagger";
 
 @Entity('user')
 export class UserEntity {
     @PrimaryGeneratedColumn()
+    @ApiProperty({
+        description: 'ID 값',
+        example: '1234-1234-1234-1234'
+    })
     id: number;
 
     @Column({

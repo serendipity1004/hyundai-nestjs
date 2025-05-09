@@ -17,6 +17,7 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ErrorExceptionFilter } from './common/filter/error.filter';
 import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
+import { FileModule } from './file/file.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { JwtModule } from '@nestjs/jwt';
     }),
     WinstonModule.forRoot(winstonConfig),
     TypeOrmModule.forRoot({
+      // url: 'postgresql://postgres.jicfvuofwxdsmzjuvzfa:m7PiKNST3110AfwC@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true',
       type: 'postgres',
       host: 'localhost',
       port: 3001,
@@ -45,6 +47,7 @@ import { JwtModule } from '@nestjs/jwt';
     UsersModule,
     PostCommentsModule,
     AuthModule,
+    FileModule,
   ],
   controllers: [AppController],
   providers: [
