@@ -15,7 +15,7 @@ export class PostsService {
     private readonly tagRepository: Repository<TagEntity>,
   ) { }
 
-  async create(createPostDto: CreatePostDto) {
+  async create(createPostDto: CreatePostDto, authorId: number) {
     await this.tagRepository.upsert(
       createPostDto.tags.map((tag) => ({
         name: tag,
@@ -32,7 +32,7 @@ export class PostsService {
     const post = this.postRepository.create({
       ...createPostDto,
       author: {
-        id: createPostDto.authorId,
+        id: authorId,
       },
       tags,
     });

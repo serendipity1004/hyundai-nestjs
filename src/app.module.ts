@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { ClassSerializerInterceptor, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PostsModule } from './posts/posts.module';
@@ -16,9 +16,14 @@ import { LoggerInterceptor } from './logger/interceptor/logger.interceptor';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ErrorExceptionFilter } from './common/filter/error.filter';
 import { AuthModule } from './auth/auth.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
+    JwtModule.register({
+      global: true,
+      secret: 'codefactory',
+    }),
     WinstonModule.forRoot(winstonConfig),
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -48,9 +53,13 @@ import { AuthModule } from './auth/auth.module';
       provide: APP_INTERCEPTOR,
       useClass: LoggerInterceptor,
     },
+    // {
+    //   provide: APP_FILTER,
+    //   useClass: ErrorExceptionFilter,
+    // },
     {
-      provide: APP_FILTER,
-      useClass: ErrorExceptionFilter,
+      provide: APP_INTERCEPTOR,
+      useClass: ClassSerializerInterceptor,
     }
   ],
 })

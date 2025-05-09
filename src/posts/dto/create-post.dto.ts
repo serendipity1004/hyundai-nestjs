@@ -2,9 +2,6 @@ import { ArrayMaxSize, ArrayNotEmpty, IsArray, IsNotEmpty, IsNumber, IsString, L
 import { IsNull } from "typeorm";
 
 export class CreatePostDto {
-    @IsNumber()
-    authorId: number;
-
     @IsString({
         message: 'title은 문자열을 입력해주세요!',
     })

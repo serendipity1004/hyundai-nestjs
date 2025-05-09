@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, Prim
 import { UserProfileEntity } from "./user-profile.entity";
 import { PostEntity } from "src/posts/entities/post.entity";
 import { PostCommentEntity } from "src/post-comments/entities/post-comment.entity";
+import { Exclude } from "class-transformer";
 
 @Entity('user')
 export class UserEntity {
@@ -14,6 +15,7 @@ export class UserEntity {
     email: string;
 
     @Column()
+    @Exclude()
     password: string;
 
     @Column({
