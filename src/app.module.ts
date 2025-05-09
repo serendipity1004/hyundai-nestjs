@@ -10,9 +10,14 @@ import { UserProfileEntity } from './users/entities/user-profile.entity';
 import { TagEntity } from './posts/entities/tag.entity';
 import { PostCommentsModule } from './post-comments/post-comments.module';
 import { PostCommentEntity } from './post-comments/entities/post-comment.entity';
+import { WinstonModule } from 'nest-winston';
+import { winstonConfig } from './logger/winston.config';
+import { LoggerInterceptor } from './logger/interceptor/logger.interceptor';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
   imports: [
+    WinstonModule.forRoot(winstonConfig),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -34,6 +39,12 @@ import { PostCommentEntity } from './post-comments/entities/post-comment.entity'
     PostCommentsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggerInterceptor,
+    }
+  ],
 })
 export class AppModule {}
